@@ -14,4 +14,9 @@ export class ProductService {
   getProducts():Observable<Product[]>{
     return this.http.get<Product[]>(this.apiURl);
   }
+
+  updateStock(productId: number, stock:number):Observable<any>{
+    const body ={"stock": stock};
+    return this.http.patch<any>(`${this,this.apiURl}/${productId}`,body)
+  }
 }

@@ -8,7 +8,7 @@ export interface Order{
     shippingAddress: String;
     city: String;
     date: String;
-    pickup:boolean;
+    isDelivery:boolean;
     id: number;
 }
 

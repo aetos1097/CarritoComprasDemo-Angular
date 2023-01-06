@@ -13,14 +13,15 @@
                 Name is required
             </mat-error>
         </mat-form-field>
-        {{isDelivery}} - isDelivery?
+        
         <mat-radio-group class ="form__element">
             <p>Choose an Option</p>
             <mat-radio-button 
-            value="pickup" (change)="onPickupOrDelivery(false) " checked
+            value="pickup" (change)="onPickupOrDelivery(false) "
+
             >Pick Up</mat-radio-button>
             <mat-radio-button 
-            value="delivery" (change)="onPickupOrDelivery(true)"
+            value="delivery" (change)="onPickupOrDelivery(true)" checked
             >Delivery</mat-radio-button>
         </mat-radio-group>
         

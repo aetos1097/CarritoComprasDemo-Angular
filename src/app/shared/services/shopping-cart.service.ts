@@ -27,6 +27,13 @@ export class ShoppingCartService{
         this.calcTotal();
 
     }
+
+    resetCart():void{
+        this.cartSubject.next([]);
+        this.totalSubject.next(0);
+        this.quantitySubject.next(0);
+        this.products=[];
+    }
     //add compra
     private addToCart(product:Product):void{
         const isProductInCart = this.products.find(({id})=>id == product.id)

@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { switchMap, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { delay, switchMap, tap } from 'rxjs';
 import { Details, Order } from 'src/app/shared/interfaces/order.interface';
 import { Store } from 'src/app/shared/interfaces/store.interface';
 import { DataService } from 'src/app/shared/services/data.service';
 import { ShoppingCartService } from 'src/app/shared/services/shopping-cart.service';
 import { Product } from '../products/interfasces/product.interface';
+import { ProductService } from '../products/services/product.service';
 
 @Component({
   selector: 'app-checkout',
@@ -22,7 +24,12 @@ export class CheckoutComponent {
   isDelivery = true;
   cart:Product[] = [];
   stores: Store[] = []
-  constructor(private dataSvc: DataService, private shoppingCartSvc: ShoppingCartService){
+  constructor(private dataSvc: DataService, 
+    private shoppingCartSvc: ShoppingCartService,
+    private router: Router,
+    private productSvc :ProductService
+    ){
+      this.checkIfCartIsEmpty();
 
   }
   ngOnInit():void{
@@ -38,17 +45,19 @@ export class CheckoutComponent {
     const data: Order = {
       ...formData,
       date:this.getCurrentDate(),
-      pickup: this.isDelivery
+      isDelivery: this.isDelivery
     }
     this.dataSvc.saveOrder(data).
     pipe(
       tap(res =>console.log('order =>', res)),
-      switchMap((order)=>{
+      switchMap(({id :orderId})=>{
         const details = this.prepareDetails();
-        const orderId = order.id;
+        // const orderId = order.id;
         return this.dataSvc.saveDetailOrder({details, orderId});
       }),
-      tap(res =>console.log('Finish =>', res)),
+      tap(() =>this.router.navigate(['/checkout/thank-you-page'])),
+      delay(2000),
+      tap(()=> this.shoppingCartSvc.resetCart())
     )
     .subscribe();
   }
@@ -64,7 +73,13 @@ export class CheckoutComponent {
     const details: Details[] = [];
     this.cart.forEach((product : Product)=>{
       const{ id: productId, name: productName, qty:quantity, stock}= product;
-      details.push({productId,productName,quantity});
+      const updateStock = (stock - quantity);
+      this.productSvc.updateStock(productId, updateStock)
+      .pipe(
+        tap(()=>details.push({productId,productName,quantity}))
+      )
+      .subscribe();
+      
     })
     return details;
   }
@@ -72,6 +87,17 @@ export class CheckoutComponent {
   private getDataCart(): void{
     this.shoppingCartSvc.cartAction$.pipe(
       tap((products: Product[])=> this.cart = products)
+    )
+    .subscribe()
+  }
+  private checkIfCartIsEmpty():void{
+    this.shoppingCartSvc.cartAction$
+    .pipe(
+      tap((products:Product[])=>{
+        if(Array.isArray(products)&& !products.length){
+          this.router.navigate(['/prodcts']);
+        }
+      })
     )
     .subscribe()
   }
